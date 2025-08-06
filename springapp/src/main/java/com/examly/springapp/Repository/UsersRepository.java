@@ -1,10 +1,18 @@
 package com.examly.springapp.Repository;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.examly.springapp.Entity.Users;
+import com.examly.springapp.Entity.Users.Role;
 
-public interface UsersRepository extends JpaRepository<Users,Integer>{
+@Repository
+public interface UsersRepository extends JpaRepository<Users,Long>{
     
+    Optional<Users> findByName(String name);
+      List<Users> findByRole(Role role);
     
 }

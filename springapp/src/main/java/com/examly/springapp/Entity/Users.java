@@ -8,10 +8,10 @@ import jakarta.persistence.*;
 public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
     private String name;
 
-    @Column(nullable=false,unique=true,length=255)
+    @Column(unique=true)
     private String email;
     private String password;
 
@@ -19,7 +19,7 @@ public class Users {
     private Role role;
 
     public enum Role{
-            Admin ,Reviewer,Applicant
+            ADMIN ,REVIEWER,APPLICANT
     }
     public String getName() {
         return name;
@@ -55,7 +55,7 @@ public class Users {
     public Users(){
 
     }
-    public Users(int id,String name,String email,String password,Role role)
+    public Users(Long id,String name,String email,String password,Role role)
     {
         this.id=id;
         this.name=name;
@@ -64,7 +64,10 @@ public class Users {
         this.role=role;
 
     }
-    
+
+    public Long getId() {
+       return id;
+    }
 
     
 }
