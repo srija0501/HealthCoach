@@ -55,9 +55,9 @@ public class Users {
     public Users(){
 
     }
-    public Users(Long id,String name,String email,String password,Role role)
+    public Users(String name,String email,String password,Role role)
     {
-        this.id=id;
+      
         this.name=name;
         this.email=email;
         this.password=password;

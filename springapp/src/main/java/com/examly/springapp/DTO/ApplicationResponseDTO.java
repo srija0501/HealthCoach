@@ -14,7 +14,7 @@ public class ApplicationResponseDTO {
     private int experienceYears;
     private LocalDateTime submissionDate;
     private String status;
- 
+private String program; 
     private String applicantName;
      private List<DocumentMetaDTO> documents;
 
@@ -27,6 +27,8 @@ public class ApplicationResponseDTO {
         this.submissionDate = app.getSubmissionDate();
         this.status = app.getStatus().toString();
         this.applicantName = app.getApplicant().getName(); // Only if Users entity has `name`
+     this.program = (app.getProgram() != null) ? app.getProgram().name() : "NOT_SPECIFIED";
+  // ✅ Add specialization
          this.documents = documents;
     }
 
@@ -38,6 +40,8 @@ public class ApplicationResponseDTO {
     public void setDocuments(List<DocumentMetaDTO> documents) {
         this.documents = documents;
     }
+    public String getProgram() { return program; }
+public void setProgram(String program) { this.program = program; }
 
     public Long getId() {
         return id;

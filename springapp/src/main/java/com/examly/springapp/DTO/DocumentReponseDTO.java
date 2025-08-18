@@ -37,7 +37,7 @@ public class DocumentReponseDTO {
         this.fileType = fileType;
     }
 
-    // Getters and Setters
+
 }
  
 

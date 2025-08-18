@@ -3,6 +3,8 @@ package com.examly.springapp.Entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 
 @Entity
 public class Notification {
@@ -11,7 +13,9 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String message;
-    private LocalDateTime timestamp;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+private LocalDateTime timestamp;
+ 
 
     @ManyToOne
     @JoinColumn(name = "user_id")
