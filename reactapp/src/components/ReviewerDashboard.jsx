@@ -147,21 +147,33 @@ const weeklyNotifications = notifications.filter((n) => {
     </div>
   </div>
 
-  {/* Profile Section */}
-  <div
-    className="d-flex align-items-center p-2 rounded"
-    style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-  >
+  {/* Bottom Section: Profile + Logout */}
+  <div>
+    {/* Profile Section */}
     <div
-      className="bg-danger text-white rounded-circle d-flex justify-content-center align-items-center"
-      style={{ width: "40px", height: "40px", fontWeight: "bold" }}
+      className="d-flex align-items-center p-2 rounded mb-3"
+      style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
     >
-      {user.name?.charAt(0).toUpperCase() || "R"}
+      <div
+        className="bg-danger text-white rounded-circle d-flex justify-content-center align-items-center"
+        style={{ width: "40px", height: "40px", fontWeight: "bold" }}
+      >
+        {user.name?.charAt(0).toUpperCase() || "R"}
+      </div>
+      <div className="ms-2">
+        <h6 className="m-0">{user.name || "Reviewer"}</h6>
+        <small className="text-light">Regular Reviewer</small>
+      </div>
     </div>
-    <div className="ms-2">
-      <h6 className="m-0">{user.name || "Reviewer"}</h6>
-      <small className="text-light">Regular Reviewer</small>
-    </div>
+
+    {/* Logout Button */}
+    <button
+      className="logout-btn"
+      onClick={handleLogout}
+    >
+      <i className="bi bi-box-arrow-right"></i>
+      Logout
+    </button>
   </div>
 </div>
 

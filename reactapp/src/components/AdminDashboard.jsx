@@ -262,63 +262,43 @@ export default function AdminDashboard() {
             </div>
 
             {/* Applications Table */}
-            <div className="card shadow-sm border-0 rounded-3 p-3">
-              <div className="table-responsive">
-                <table className="table table-hover align-middle">
-                  <thead className="table-light">
-                    <tr>
-                      <th>ID</th>
-                      <th>Applicant</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {applications.map((app) => (
-                      <tr key={app.id}>
-                        <td>{app.id}</td>
-                        <td>{app.applicantName || app.user?.username}</td>
-                        <td>
-                          <span
-                            className={`badge ${
-                              app.status === "pending"
-                                ? "bg-warning text-dark"
-                                : app.status === "approved"
-                                ? "bg-success"
-                                : "bg-danger"
-                            }`}
-                          >
-                            {app.status.toUpperCase()}
-                          </span>
-                        </td>
-                        <td>
-                          {app.status === "pending" && (
-                            <>
-                              <button
-                                className="btn btn-success btn-sm me-2"
-                                onClick={() =>
-                                  handleApplicationUpdate(app.id, "approved")
-                                }
-                              >
-                                <i className="bi bi-check-circle"></i>
-                              </button>
-                              <button
-                                className="btn btn-danger btn-sm"
-                                onClick={() =>
-                                  handleApplicationUpdate(app.id, "rejected")
-                                }
-                              >
-                                <i className="bi bi-x-circle"></i>
-                              </button>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+           {/* Applications Table */}
+<div className="card shadow-sm border-0 rounded-3 p-3">
+  <div className="table-responsive">
+    <table className="table table-hover align-middle">
+      <thead className="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Applicant</th>
+          <th>Program</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {applications.map((app) => (
+          <tr key={app.id}>
+            <td>{app.id}</td>
+            <td>{app.applicantName || app.user?.username}</td>
+            <td>{app.program || "N/A"}</td> {/* New Program Column */}
+            <td>
+              <span
+                className={`badge ${
+                  app.status === "pending"
+                    ? "bg-warning text-dark"
+                    : app.status === "approved"
+                    ? "bg-success"
+                    : "bg-danger"
+                }`}
+              >
+                {app.status.toUpperCase()}
+              </span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
           </div>
         );
 
@@ -381,31 +361,32 @@ export default function AdminDashboard() {
               )}
 
               {activeChart === "pie" && (
-                <ResponsiveContainer width="100%" height={280}>
-                  <PieChart>
-                    <Pie
-                      data={Object.entries(statusCounts).map(
-                        ([name, value]) => ({ name, value })
-                      )}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={90}
-                      innerRadius={40}
-                      label
-                    >
-                      {Object.keys(statusCounts).map((_, i) => (
-                        <Cell
-                          key={`cell-${i}`}
-                          fill={COLORS[i % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
+  <ResponsiveContainer width="100%" height={320}>
+    <PieChart>
+      <Pie
+        data={Object.entries(statusCounts).map(([name, value]) => ({
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          value,
+        }))}
+        dataKey="value"
+        nameKey="name"
+        cx="50%"
+        cy="50%"
+        outerRadius={110}
+        innerRadius={50}
+        label={({ name, percent }) =>
+          `${name}: ${(percent * 100).toFixed(0)}%`
+        }
+      >
+        {Object.keys(statusCounts).map((_, i) => (
+          <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
+        ))}
+      </Pie>
+      <Tooltip formatter={(val) => [`${val}`, "Applications"]} />
+      <Legend verticalAlign="bottom" height={36} />
+    </PieChart>
+  </ResponsiveContainer>
+)}
             </div>
           </div>
         );
@@ -447,7 +428,7 @@ export default function AdminDashboard() {
               <button
                 className={`nav-link w-100 text-start btn btn-sm rounded-3 ${
                   activeTab === "users"
-                    ? "btn-light text-success fw-bold shadow-sm"
+                       ? "bg-success text-white fw-bold"
                     : "btn-outline-light text-white"
                 }`}
                 onClick={() => setActiveTab("users")}
@@ -459,7 +440,7 @@ export default function AdminDashboard() {
               <button
                 className={`nav-link w-100 text-start btn btn-sm rounded-3 ${
                   activeTab === "applications"
-                    ? "btn-light text-success fw-bold shadow-sm"
+                        ? "bg-success text-white fw-bold"
                     : "btn-outline-light text-white"
                 }`}
                 onClick={() => setActiveTab("applications")}
