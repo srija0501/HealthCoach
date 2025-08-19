@@ -1,11 +1,12 @@
 import React from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import "./ApplicantDashboard.css"; // Reuse your CSS
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
+import "./ApplicantDashboard.css"; // Custom CSS if you want to override styles
 
 function ApplicantLayout() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user")) || {};
-console.log(localStorage.getItem("user"));
 
   const handleLogout = () => {
     localStorage.clear();
@@ -13,10 +14,10 @@ console.log(localStorage.getItem("user"));
   };
 
   return (
-    <div className="applicant-dashboard d-flex">
+    <div className="d-flex">
       {/* Sidebar */}
       <div
-        className="sidebar d-flex flex-column justify-content-between text-white p-3"
+        className="d-flex flex-column justify-content-between text-white p-3"
         style={{
           width: "250px",
           background: "linear-gradient(180deg, #2c786c, #51c4a7)",
@@ -25,19 +26,23 @@ console.log(localStorage.getItem("user"));
       >
         {/* Top Section */}
         <div>
-          <h3 className="mb-4">Health Coach Portal</h3>
+          <h4 className="fw-bold mb-4 text-center">Health Coach Portal</h4>
 
           {/* User Info */}
           <div
             className="d-flex align-items-center p-2 rounded mb-4"
-            style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
           >
             <div
               className="bg-danger text-white rounded-circle d-flex justify-content-center align-items-center"
-              style={{ width: "40px", height: "40px", fontWeight: "bold" }}
+              style={{
+                width: "45px",
+                height: "45px",
+                fontSize: "18px",
+                fontWeight: "bold",
+              }}
             >
-              
-             {user?user.username.charAt(0).toUpperCase() : "U"}
+              {user?.username ? user.username.charAt(0).toUpperCase() : "U"}
             </div>
             <div className="ms-2">
               <h6 className="m-0">{user.name || "Applicant"}</h6>
@@ -46,7 +51,7 @@ console.log(localStorage.getItem("user"));
           </div>
 
           {/* Navigation */}
-          <nav className="sidebar-nav list-group">
+          <div className="list-group" style={{ background: "#0b0f0eff" }}>
             <button
               className="list-group-item list-group-item-action border-0"
               onClick={() => navigate("/applicant/applicant-dashboard")}
@@ -71,22 +76,19 @@ console.log(localStorage.getItem("user"));
             >
               <i className="bi bi-journal-text me-2"></i> Guidelines
             </button>
-          </nav>
+          </div>
         </div>
 
-        {/* Bottom Section: Logout */}
+        {/* Logout */}
         <div>
-          <button
-            className="btn btn-danger w-100"
-            onClick={handleLogout}
-          >
+          <button className="btn btn-danger w-100" onClick={handleLogout}>
             <i className="bi bi-box-arrow-right me-2"></i> Logout
           </button>
         </div>
       </div>
 
-      {/* Main content placeholder */}
-      <div className="main-content flex-grow-1 p-3">
+      {/* Main content */}
+      <div className="flex-grow-1 p-4 bg-light">
         <Outlet />
       </div>
     </div>

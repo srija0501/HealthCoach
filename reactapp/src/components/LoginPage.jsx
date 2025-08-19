@@ -23,22 +23,17 @@ export default function LoginPage() {
 
       if (response.data && response.data.id && response.data.role) {
         setSuccessMessage("Login successful!");
-        
-        // Normalize role to uppercase to ensure consistency
+
         const userData = {
           ...response.data,
-          role: response.data.role.toUpperCase()
+          role: response.data.role.toUpperCase(),
         };
-        console.log("Login response user:", response.data);
-//localStorage.setItem("user", JSON.stringify(res.data));
-        // Store only the user object
         localStorage.setItem("user", JSON.stringify(userData));
 
         if (response.data.token) {
           localStorage.setItem("token", response.data.token);
         }
 
-        // Navigate based on normalized role
         switch (userData.role) {
           case "APPLICANT":
             navigate("/applicant/applicant-dashboard");
@@ -47,7 +42,6 @@ export default function LoginPage() {
             navigate("/reviewer-dashboard");
             break;
           case "ADMIN":
-            console.log("Navigating to admin dashboard");
             navigate("/admin-dashboard");
             break;
           default:
@@ -60,48 +54,75 @@ export default function LoginPage() {
       setError(err.response?.data?.message || "Invalid email or password");
     }
   };
+
   return (
     <div
-      className="container mt-5 d-flex align-items-center justify-content-center"
-      style={{ minHeight: "80vh" }}
+      className="d-flex align-items-center justify-content-center"
+      style={{
+        minHeight: "100vh",
+        background:"linear-gradient(135deg, #2c7856ff 0%, #51C4A7 100%)",
+      }}
     >
-      <div className="card p-4 shadow" style={{ maxWidth: "380px", width: "100%" }}>
-        <h2 className="text-center mb-4">Login</h2>
+      <div
+        className="card shadow-lg p-4"
+        style={{ maxWidth: "400px", width: "100%", borderRadius: "15px" }}
+      >
+        <h2 className="text-center mb-4 text-success fw-bold">Welcome Back</h2>
+        <p className="text-center text-muted mb-4">
+          Login to your account to continue
+        </p>
 
         {error && <div className="alert alert-danger">{error}</div>}
-        {successMessage && <div className="alert alert-success">{successMessage}</div>}
+        {successMessage && (
+          <div className="alert alert-success">{successMessage}</div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label>Email</label>
-            <input
-              type="email"
-              className="form-control"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-            />
+            <label className="form-label fw-semibold">Email</label>
+            <div className="input-group">
+              <span className="input-group-text bg-light">
+                <i className="bi bi-envelope-fill"></i>
+              </span>
+              <input
+                type="email"
+                className="form-control"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+              />
+            </div>
           </div>
+
           <div className="mb-3">
-            <label>Password</label>
-            <input
-              type="password"
-              className="form-control"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-            />
+            <label className="form-label fw-semibold">Password</label>
+            <div className="input-group">
+              <span className="input-group-text bg-light">
+                <i className="bi bi-lock-fill"></i>
+              </span>
+              <input
+                type="password"
+                className="form-control"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                required
+              />
+            </div>
           </div>
-          <button type="submit" className="btn btn-success w-100">
+
+          <button type="submit" className="btn btn-secondary w-100 fw-semibold">
             Login
           </button>
         </form>
 
         <div className="text-center mt-3">
-          <small>
-            Don't have an account? <a href="/register">Register here</a>
+          <small className="text-muted">
+            Don’t have an account?{" "}
+            <a href="/register" className="text-decoration-none fw-bold">
+              Register here
+            </a>
           </small>
         </div>
       </div>

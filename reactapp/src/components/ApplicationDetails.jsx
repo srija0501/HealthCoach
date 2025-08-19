@@ -114,7 +114,15 @@ export default function ApplicationDetail() {
   }
 
   return (
-    <div className="container-fluid  d-flex justify-content-center align-items-start  bg-light">
+    <div
+  className="container-fluid d-flex justify-content-center align-items-start"
+  style={{
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #2c7856ff 0%, #51C4A7 100%)",
+    
+    paddingBottom: "40px",
+  }}
+>
       <div className="col-lg-6 col-xl-5">
         <div className="card border-0 shadow-lg rounded-4 overflow-hidden">
           {/* Header */}
