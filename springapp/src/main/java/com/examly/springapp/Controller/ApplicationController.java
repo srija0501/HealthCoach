@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,12 +48,17 @@ public ResponseEntity<String> getApplicationStatus(@PathVariable Long userId) {
 }
 
 
+
   
     // submit the application form
-    @PostMapping("/submit/{userId}")
-    public Application submitApplication(@PathVariable Long userId, @RequestBody Application application) {
-        return appser.submitApplication(userId, application);
-    }
+   
+   @PostMapping("/submit/{userId}")
+@PreAuthorize("hasRole('APPLICANT')")
+public Application submitApplication(@PathVariable Long userId, @RequestBody Application application) {
+    System.out.println("✅ Received application: " + application);
+    return appser.submitApplication(userId, application);
+}
+
    
    
     // Get Application by ID with DTO

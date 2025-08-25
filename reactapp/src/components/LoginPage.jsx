@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
+import {
+loginUser
+} from "../api/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -11,49 +14,51 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccessMessage("");
+  e.preventDefault();
+  setError("");
+  setSuccessMessage("");
 
-    try {
-      const response = await axios.post("http://localhost:8080/user/login", {
-        email,
-        password,
-      });
+  try {
+    const data = await loginUser({ email, password });
+    console.log("Login response:", data);
 
-      if (response.data && response.data.id && response.data.role) {
-        setSuccessMessage("Login successful!");
+    if (data && data.id && data.role) {
+      setSuccessMessage("Login successful!");
 
-        const userData = {
-          ...response.data,
-          role: response.data.role.toUpperCase(),
-        };
-        localStorage.setItem("user", JSON.stringify(userData));
+      const userData = {
+        id: data.id,
+        username: data.username,
+        role: data.role.toUpperCase(),
+      };
 
-        if (response.data.token) {
-          localStorage.setItem("token", response.data.token);
-        }
-
-        switch (userData.role) {
-          case "APPLICANT":
-            navigate("/applicant/applicant-dashboard");
-            break;
-          case "REVIEWER":
-            navigate("/reviewer-dashboard");
-            break;
-          case "ADMIN":
-            navigate("/admin-dashboard");
-            break;
-          default:
-            navigate("/");
-        }
-      } else {
-        setError("Invalid login response");
+      // ✅ Save user and token
+      localStorage.setItem("user", JSON.stringify(userData));
+      if (data.token) {
+        localStorage.setItem("token", data.token);
       }
-    } catch (err) {
-      setError(err.response?.data?.message || "Invalid email or password");
+
+      // ✅ Navigate based on role
+      switch (userData.role) {
+        case "APPLICANT":
+          navigate("/applicant/applicant-dashboard");
+          break;
+        case "REVIEWER":
+          navigate("/reviewer-dashboard");
+          break;
+        case "ADMIN":
+          navigate("/admin-dashboard");
+          break;
+        default:
+          navigate("/");
+      }
+    } else {
+      setError("Invalid login response");
     }
-  };
+  } catch (err) {
+    setError(err.response?.data?.message || "Invalid email or password");
+  }
+};
+
 
   return (
     <div

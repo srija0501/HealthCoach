@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState} from "react";
+import { useNavigate } from "react-router-dom";
 import {
   getAllUsers,
   getApplicationsByStatus,
@@ -32,7 +33,7 @@ export default function AdminDashboard() {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const pageSize = 5;
-
+  const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [statusCounts, setStatusCounts] = useState({});
   const [reportData, setReportData] = useState([]);
@@ -78,32 +79,35 @@ export default function AdminDashboard() {
       .then(() => loadApplicationsByStatus(appFilter))
       .catch(console.error);
   };
+  const handleLogout = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  navigate("/login");
+};
 
-  const handleAddReviewer = async (e) => {
-    e.preventDefault();
-    try {
-      const reviewerData = {
-        name: newReviewer.username,
-        email: newReviewer.email,
-        password: newReviewer.password,
-        role: "REVIEWER",
-      };
-      await addUser(reviewerData);
-      alert("✅ Reviewer added successfully");
-      setNewReviewer({
-        username: "",
-        email: "",
-        password: "",
-        role: "REVIEWER",
-      });
-      loadUsers(currentPage);
-    } catch (err) {
-      alert(
-        "❌ Failed to add reviewer: " +
-          (err.response?.data?.message || "Unknown error")
-      );
-    }
-  };
+const handleAddReviewer = async (e) => {
+  e.preventDefault();
+  try {
+    const reviewerData = {
+      name: newReviewer.username,   // ✅ correct field name
+      email: newReviewer.email,
+      password: newReviewer.password,
+    };
+    await addUser(reviewerData);
+    alert("✅ Reviewer added successfully");
+    setNewReviewer({
+      username: "",
+      email: "",
+      password: "",
+    });
+    loadUsers(currentPage);
+  } catch (err) {
+    alert(
+      "❌ Failed to add reviewer: " +
+        (err.response?.data?.message || "Unknown error")
+    );
+  }
+};
 
   // ------------------ Render Tabs ------------------
   const renderContent = () => {
@@ -299,158 +303,128 @@ export default function AdminDashboard() {
         );
 
       // ========== APPLICATIONS ==========
-      case "applications":
-        return (
-          <div className="admin-content">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <h2 className="mb-0 text-success fw-bold">
-                <i className="bi bi-file-earmark-text me-2"></i> Application Management
-              </h2>
-              <div className="bg-success bg-opacity-10 px-3 py-1 rounded-pill">
-                <small className="text-success fw-bold">
-                  {applications.length} {appFilter} applications
-                </small>
-              </div>
-            </div>
+    case "applications":
+  return (
+    <div className="admin-content">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="mb-0 text-success fw-bold">
+          <i className="bi bi-file-earmark-text me-2"></i> Application Management
+        </h2>
+        <div className="bg-success bg-opacity-10 px-3 py-1 rounded-pill">
+          <small className="text-success fw-bold">
+            {applications.length} {appFilter} applications
+          </small>
+        </div>
+      </div>
 
-            {/* Filters */}
-            <div className="card mb-4 border-0 shadow-sm">
-              <div className="card-body py-2">
-                <div className="btn-group w-100">
-                  {["pending", "approved", "rejected"].map((status) => (
-                    <button
-                      key={status}
-                      className={`btn btn-sm ${
-                        appFilter === status ? "btn-success" : "btn-outline-light"
-                      } text-capitalize`}
-                      onClick={() => setAppFilter(status)}
-                    >
-                      <i className={`bi bi-${
-                        status === "pending" ? "hourglass-split" : 
-                        status === "approved" ? "check-circle" : "x-circle"
-                      } me-2`} style={{ fontSize: "20px" ,color:"black"
-                      }}></i>
-                     <span style={{ color: "black", fontSize: "14px" }}>{status}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+      {/* Filters */}
+      <div className="card mb-4 border-0 shadow-sm">
+        <div className="card-body py-2">
+          <div className="btn-group w-100">
+            {["pending", "approved", "rejected"].map((status) => (
+              <button
+                key={status}
+                className={`btn btn-sm ${
+                  appFilter === status ? "btn-success" : "btn-outline-light"
+                } text-capitalize`}
+                onClick={() => setAppFilter(status)}
+              >
+                <i
+                  className={`bi bi-${
+                    status === "pending"
+                      ? "hourglass-split"
+                      : status === "approved"
+                      ? "check-circle"
+                      : "x-circle"
+                  } me-2`}
+                  style={{ fontSize: "20px", color: "black" }}
+                ></i>
+                <span style={{ color: "black", fontSize: "14px" }}>{status}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
-            {/* Applications Table */}
-            <div className="card border-0 shadow-sm">
-              <div className="card-header bg-white border-0 py-3">
-                <h5 className="mb-0 text-secondary">
-                  <i className="bi bi-list-check me-2"></i>
-                  {appFilter.charAt(0).toUpperCase() + appFilter.slice(1)} Applications
-                </h5>
-              </div>
-              <div className="card-body p-0">
-                <div className="table-responsive">
-                  <table className="table table-hover align-middle mb-0">
-                    <thead className="table-light">
-                      <tr>
-                        <th className="ps-4">ID</th>
-                        <th>Applicant</th>
-                        <th>Program</th>
-                        <th>Submitted</th>
-                        <th>Status</th>
-                        <th className="text-end pe-4">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {applications.map((app) => (
-                        <tr key={app.id}>
-                          <td className="ps-4 fw-bold text-muted">#{app.id}</td>
-                          <td>
-                            <div className="d-flex align-items-center">
-                              <div className="avatar-sm me-3">
-                                <div className="avatar-title bg-light rounded-circle">
-                                  <i className="bi bi-person-fill text-success"></i>
-                                </div>
-                              </div>
-                              <div>
-                                <h6 className="mb-0">{app.applicantName || app.user?.username}</h6>
-                                <small className="text-muted">{app.email || "N/A"}</small>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            <span className="badge bg-light text-dark">
-                              {app.program || "N/A"}
-                            </span>
-                          </td>
-                          <td>
-                            <small className="text-muted">
-                              {new Date(app.createdAt || new Date()).toLocaleDateString()}
-                            </small>
-                          </td>
-                          <td>
-                            <span
-                              className={`badge rounded-pill py-1 px-3 ${
-                                app.status === "pending"
-                                  ? "bg-warning text-dark"
-                                  : app.status === "approved"
-                                  ? "bg-success"
-                                  : "bg-danger"
-                              }`}
-                            >
-                              {app.status.toUpperCase()}
-                            </span>
-                          </td>
-                          <td className="text-end pe-4">
-                            <div className="dropdown">
-                              <button
-                                className="btn btn-sm btn-outline-secondary dropdown-toggle"
-                                type="button"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false"
-                              >
-                                Actions
-                              </button>
-                              <ul className="dropdown-menu dropdown-menu-end">
-                                <li>
-                                  <button className="dropdown-item">
-                                    <i className="bi bi-eye me-2"></i>View Details
-                                  </button>
-                                </li>
-                                <li>
-                                  <button 
-                                    className="dropdown-item text-success"
-                                    onClick={() => handleApplicationUpdate(app.id, "approved")}
-                                  >
-                                    <i className="bi bi-check-circle me-2"></i>Approve
-                                  </button>
-                                </li>
-                                <li>
-                                  <button 
-                                    className="dropdown-item text-danger"
-                                    onClick={() => handleApplicationUpdate(app.id, "rejected")}
-                                  >
-                                    <i className="bi bi-x-circle me-2"></i>Reject
-                                  </button>
-                                </li>
-                              </ul>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              {applications.length === 0 && (
-                <div className="card-body text-center py-5">
-                  <div className="empty-state">
-                    <i className="bi bi-inbox text-muted" style={{ fontSize: "3rem" }}></i>
-                    <h5 className="mt-3">No {appFilter} applications found</h5>
-                    <p className="text-muted">When new {appFilter} applications arrive, they'll appear here.</p>
-                  </div>
-                </div>
-              )}
+      {/* Applications Table */}
+      <div className="card border-0 shadow-sm">
+        <div className="card-header bg-white border-0 py-3">
+          <h5 className="mb-0 text-secondary">
+            <i className="bi bi-list-check me-2"></i>
+            {appFilter.charAt(0).toUpperCase() + appFilter.slice(1)} Applications
+          </h5>
+        </div>
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th className="ps-4">ID</th>
+                  <th>Applicant</th>
+                  <th>Program</th>
+                  <th>Submitted</th>
+                  <th>Status</th>
+                  {/* Removed Actions column */}
+                </tr>
+              </thead>
+              <tbody>
+                {applications.map((app) => (
+                  <tr key={app.id}>
+                    <td className="ps-4 fw-bold text-muted">#{app.id}</td>
+                    <td>
+                      <div className="d-flex align-items-center">
+                        <div className="avatar-sm me-3">
+                          <div className="avatar-title bg-light rounded-circle">
+                            <i className="bi bi-person-fill text-success"></i>
+                          </div>
+                        </div>
+                        <div>
+                          <h6 className="mb-0">{app.applicantName || app.user?.username}</h6>
+                          <small className="text-muted">{app.email || "N/A"}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="badge bg-light text-dark">{app.program || "N/A"}</span>
+                    </td>
+                    <td>
+                      <small className="text-muted">
+                        {new Date(app.createdAt || new Date()).toLocaleDateString()}
+                      </small>
+                    </td>
+                    <td>
+                      <span
+                        className={`badge rounded-pill py-1 px-3 ${
+                          app.status === "pending"
+                            ? "bg-warning text-dark"
+                            : app.status === "approved"
+                            ? "bg-success"
+                            : "bg-danger"
+                        }`}
+                      >
+                        {app.status.toUpperCase()}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {applications.length === 0 && (
+          <div className="card-body text-center py-5">
+            <div className="empty-state">
+              <i className="bi bi-inbox text-muted" style={{ fontSize: "3rem" }}></i>
+              <h5 className="mt-3">No {appFilter} applications found</h5>
+              <p className="text-muted">
+                When new {appFilter} applications arrive, they'll appear here.
+              </p>
             </div>
           </div>
-        );
+        )}
+      </div>
+    </div>
+  );
 
       // ========== ANALYTICS ==========
       case "analytics":
@@ -816,9 +790,12 @@ export default function AdminDashboard() {
                 <h6 className="mb-0 text-white">Admin User</h6>
                 <small className="text-white-50">admin@example.com</small>
               </div>
-              <button className="btn btn-sm btn-outline-light ms-auto">
-                <i className="bi bi-box-arrow-right"></i>
-              </button>
+              <button
+  className="btn btn-sm btn-outline-light ms-auto"
+  onClick={handleLogout}
+>
+  <i className="bi bi-box-arrow-right"></i>
+</button>
             </div>
           </div>
         </nav>
@@ -837,7 +814,7 @@ export default function AdminDashboard() {
         .admin-sidebar {
           width: 280px;
           min-height: 100vh;
-          background: linear-gradient(180deg, #2c786c, #51c4a7);
+          background: linear-gradient(180deg, #1a905bff, #196854ff);
           color: white;
           display: flex;
           flex-direction: column;

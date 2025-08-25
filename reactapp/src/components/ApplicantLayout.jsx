@@ -20,7 +20,7 @@ function ApplicantLayout() {
         className="d-flex flex-column justify-content-between text-white p-3"
         style={{
           width: "250px",
-          background: "linear-gradient(180deg, #2c786c, #51c4a7)",
+          background:"linear-gradient(135deg, #2c7856ff 0%, #51C4A7 100%)",
           minHeight: "100vh",
         }}
       >
