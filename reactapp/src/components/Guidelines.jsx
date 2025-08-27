@@ -17,20 +17,13 @@ export default function ApplicantGuidelines() {
 
   return (
     <div className="container mt-5">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="btn btn-outline-secondary mb-4 rounded-pill px-4"
-      >
-        ← Back
-      </button>
 
       {/* Main Card */}
       <div className="card shadow-lg border-0">
         {/* Card Header */}
         <div
           className="card-header text-white py-4"
-          style={{ background: "linear-gradient(45deg, #4e73df, #1cc88a)" }}
+          style={{  background: "linear-gradient(135deg, #2c7856ff 0%, #51C4A7 100%)" }}
         >
           <h3 className="fw-bold mb-1">Applicant Guidelines</h3>
           <p className="mb-0 small text-white-50">
@@ -47,7 +40,7 @@ export default function ApplicantGuidelines() {
                 className="list-group-item border-0 bg-transparent d-flex align-items-start"
               >
                 <span
-                  className="badge bg-primary rounded-pill me-3 shadow-sm"
+                  className="badge bg-success rounded-pill me-3 shadow-sm"
                   style={{ minWidth: "30px", fontSize: "13px" }}
                 >
                   {index + 1}

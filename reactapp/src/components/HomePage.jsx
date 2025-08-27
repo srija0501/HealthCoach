@@ -1,30 +1,52 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import Footer from "./Footer";
 import { FaClipboardList, FaUserCheck, FaRegChartBar } from "react-icons/fa";
 
 function HomePage() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
 
-  useEffect(() => {
-    if (token) {
-      switch (role) {
-        case "APPLICANT":
-          navigate("/applicant-dashboard");
-          break;
-        case "REVIEWER":
-          navigate("/reviewer-dashboard");
-          break;
-        case "ADMIN":
-          navigate("/admin-dashboard");
-          break;
-        default:
-          navigate("/");
-      }
+  // decode role if token exists
+  let role = null;
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      role = decoded.role;
+    } catch (e) {
+      console.error("Invalid token", e);
     }
-  }, [token, role, navigate]);
+  }
+
+  console.log("Token:", token);
+  console.log("Role:", role);
+
+  // redirect only if token + role exist
+useEffect(() => {
+  if (token && role) {
+    switch (role) {
+      case "APPLICANT":
+        navigate("/applicant/applicant-dashboard");
+        break;
+      case "REVIEWER":
+        navigate("/reviewer-dashboard");
+        break;
+      case "ADMIN":
+        navigate("/admin-dashboard");
+        break;
+      default:
+        navigate("/");
+    }
+  }
+}, [token, role, navigate]);
+
+  // logout function
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    navigate("/");
+  };
 
   const renderHeroButtons = () => (
     <div className="d-flex justify-content-center gap-3 mt-4">
@@ -45,26 +67,41 @@ function HomePage() {
 
   return (
     <div className="homepage">
-      {/* Hero Section with Background Image */}
-  <header
-  className="d-flex align-items-center justify-content-center text-center text-white"
-  style={{
-    backgroundImage:
-      "url('https://plus.unsplash.com/premium_photo-1667762241847-37471e8c8bc0?w=1920&auto=format&fit=crop&q=80&ixlib=rb-4.1.0')",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
-    minHeight: "75vh",
-  }}
->
-  <div className="p-5 rounded" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-    <h1 className="display-4 fw-bold">Health Coach Validation System</h1>
-    <p className="lead mt-3">
-      Platform for aspiring coaches to apply & be reviewed efficiently.
-    </p>
-    {!token && renderHeroButtons()}
-  </div>
-</header>
+      {/* Hero Section */}
+      <header
+        className="d-flex align-items-center justify-content-center text-center text-white"
+        style={{
+          backgroundImage:
+            "url('https://plus.unsplash.com/premium_photo-1667762241847-37471e8c8bc0?w=1920&auto=format&fit=crop&q=80&ixlib=rb-4.1.0')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          minHeight: "75vh",
+        }}
+      >
+        <div
+          className="p-5 rounded"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <h1 className="display-4 fw-bold">
+            Health Coach Validation System
+          </h1>
+          <p className="lead mt-3">
+            Platform for aspiring coaches to apply & be reviewed efficiently.
+          </p>
+          {/* Show login/register buttons only if no token */}
+          {!token && renderHeroButtons()}
+          {/* If logged in, show logout */}
+          {token && (
+            <button
+              className="btn btn-danger btn-lg mt-3"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          )}
+        </div>
+      </header>
 
       {/* Impact Section */}
       <section className="py-5 bg-light">
@@ -88,7 +125,7 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Validation Process Section */}
+      {/* Validation Process */}
       <section className="py-5">
         <div className="container">
           <div className="row align-items-center g-4">
@@ -111,7 +148,7 @@ function HomePage() {
             </div>
             <div className="col-lg-6">
               <img
-                src="https://images.unsplash.com/photo-1627818653012-054f17eb0648?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8SGVhbHRoJTIwY29hY2hpbmclMjBzZXNzaW9uJTIwJTIwQSUyMGNvYWNoJTIwZ3VpZGluZyUyMGElMjBjbGllbnQlMjB3aXRoJTIwYSUyMG5vdGVwYWQlMjBvciUyMHRhYmxldC4lMjAlMjBPdXRkb29ycyUyMG9yJTIwaW4lMjBhJTIwYnJpZ2h0JTIwd2VsbG5lc3MlMjBlbnZpcm9ubWVudC4lMjAlMjBBZGRzJTIwd2FybXRoJTIwYW5kJTIwc2hvd3MlMjB0aGUlMjBlbmQlMjBnb2FsJTIwb2YlMjB0aGUlMjB2YWxpZGF0aW9uLnxlbnwwfHwwfHx8MA%3D%3D?auto=format&fit=crop&w=800&q=80"
+                src="https://images.unsplash.com/photo-1627818653012-054f17eb0648?w=600&auto=format&fit=crop&q=60"
                 alt="Validation Illustration"
                 className="img-fluid rounded shadow"
               />
@@ -120,24 +157,30 @@ function HomePage() {
         </div>
       </section>
 
-      {/* 3-Step Validation Overview */}
+      {/* 3-Step Validation */}
       <section className="py-5 bg-light">
         <div className="container">
           <h2 className="text-center mb-5 fw-bold">Our 3-Step Validation</h2>
           <div className="row g-4">
             {[
               {
-                icon: <FaClipboardList size={40} className="text-success mb-3" />,
+                icon: (
+                  <FaClipboardList size={40} className="text-success mb-3" />
+                ),
                 title: "Application Review",
                 desc: "Submit your credentials for thorough evaluation by our experts.",
               },
               {
-                icon: <FaUserCheck size={40} className="text-success mb-3" />,
+                icon: (
+                  <FaUserCheck size={40} className="text-success mb-3" />
+                ),
                 title: "Background Verification",
                 desc: "We verify certifications, work history, and ethical standards.",
               },
               {
-                icon: <FaRegChartBar size={40} className="text-success mb-3" />,
+                icon: (
+                  <FaRegChartBar size={40} className="text-success mb-3" />
+                ),
                 title: "Continuous Monitoring",
                 desc: "Regular assessments to ensure ongoing compliance and quality.",
               },
@@ -154,7 +197,7 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Trainer Support Center */}
+      {/* Trainer Support */}
       <section className="py-5 bg-dark text-white">
         <div className="container text-center">
           <h2 className="mb-4 fw-bold">Trainer Support Center</h2>

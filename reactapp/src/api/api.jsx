@@ -2,68 +2,124 @@ import axios from "axios";
 
 const API_BASE = "http://localhost:8080";
 
+// ================== AXIOS INSTANCE WITH TOKEN ==================
+const api = axios.create({
+  baseURL: API_BASE,
+});
+
+// Add Authorization header automatically if token exists
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config; 
+  },
+  (error) => Promise.reject(error)
+);
+
 // ================== AUTH & USER APIs ==================
 export const loginUser = async (credentials) => {
-  const res = await axios.post(`${API_BASE}/user/login`, credentials);
+  const res = await api.post(`/user/login`, credentials);
+  const data = res.data;
+  if (data.user) {
+    return {
+      id: data.user.id,
+      username: data.user.username,
+      role: data.user.role,
+      token: data.token,
+    };
+  }
+
+  return data; 
+};
+
+export const registerUser = async (userData) => {
+  const res = await api.post(`/user/register`, userData, {
+    headers: { "Content-Type": "application/json" },
+  });
   return res.data;
 };
 
 export const addUser = async (userData) => {
-  const res = await axios.post(`${API_BASE}/user/add`, userData);
+  const res = await api.post(`/user/addReviewer`, userData);
   return res.data;
 };
 
 export const getAllUsers = async (page = 0, size = 5) => {
-  const res = await axios.get(`${API_BASE}/user/get`, {
-    params: { page, size },
-  });
-  return res.data; // contains { content, totalPages, number, ... }
+  const res = await api.get(`/user/get`, { params: { page, size } });
+  return res.data;
 };
+
 export const getUsersByRole = async (role) => {
-  const res = await axios.get(`${API_BASE}/user/role/${role}`);
+  const res = await api.get(`/user/role/${role}`);
   return res.data;
 };
 
 export const updateUserProfile = async (id, updatedUser) => {
-  const res = await axios.put(`${API_BASE}/user/${id}/profile`, updatedUser);
+  const res = await api.put(`/user/${id}/profile`, updatedUser);
   return res.data;
 };
 
 // ------------------ Application APIs ------------------
 
-// Get applications by status using filterByStatus endpoint
 export const getApplicationsByStatus = async (status) => {
-  const res = await axios.get(`${API_BASE}/application/filterByStatus`, {
+  const res = await api.get(`/application/filterByStatus`, {
     params: { status },
+  });
+  return res.data;
+};
+
+export const submitApplication = async (userId, applicationData) => {
+  const res = await api.post(`/application/submit/${userId}`, applicationData, {
+    headers: { "Content-Type": "application/json" },
+  });
+  return res.data;
+};
+
+export const uploadDocuments = async (applicationId, files) => {
+  const formData = new FormData();
+  files.forEach((file) => formData.append("files", file));
+
+  const res = await api.post(`/documents/upload/${applicationId}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data;
 };
 
 // ------------------ Applicant APIs ------------------
 
-// Get applicant notifications
 export const getApplicantNotifications = (userId) =>
-  axios.get(`${API_BASE}/notification/user/${userId}`).then((res) => res.data);
+  api.get(`/notification/user/${userId}`).then((res) => res.data);
 
-// Check application status
 export const getApplicationStatus = (userId) =>
-  axios
-    .get(`${API_BASE}/application/${userId}/application-status`, {
-      responseType: "text",
-    })
+  api
+    .get(`/application/${userId}/application-status`, { responseType: "text" })
     .then((res) => res.data);
 
-// Get full application (for profile page)
 export const getApplicationById = (appId) =>
-  axios.get(`${API_BASE}/application/${appId}`).then((res) => res.data);
+  api.get(`/application/${appId}`).then((res) => res.data);
+
+export const getApplicationByUserId = async (userId) => {
+  const res = await api.get(`/application/dashboard/${userId}`);
+  return res.data;
+};
+
+export const updateApplication = async (appId, payload) => {
+  const res = await api.put(`/application/${appId}`, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+  return res.data;
+};
 
 // ------------------ Reviewer/Admin APIs ------------------
 
 export const getReviewerNotifications = (reviewerId) =>
-  axios.get(`${API_BASE}/notification/user/${reviewerId}`).then((res) => res.data);
+  api.get(`/notification/user/${reviewerId}`).then((res) => res.data);
 
 export const getPendingApplications = () =>
-  axios.get(`${API_BASE}/application/pending`).then((res) => res.data);
+  api.get(`/application/pending`).then((res) => res.data);
 
 export const updateApplicationStatus = async (
   applicationId,
@@ -71,10 +127,10 @@ export const updateApplicationStatus = async (
   rejectionReason = null
 ) => {
   try {
-    const res = await axios.put(
-      `${API_BASE}/application/${applicationId}/status`,
-      { status, rejectionReason }
-    );
+    const res = await api.put(`/application/${applicationId}/status`, {
+      status,
+      rejectionReason,
+    });
     return res.data;
   } catch (error) {
     console.error(
@@ -86,36 +142,39 @@ export const updateApplicationStatus = async (
 };
 
 export const getStatusCounts = async () => {
-  const res = await axios.get(`${API_BASE}/application/status-counts`);
+  const res = await api.get(`/application/status-counts`);
   return res.data;
 };
 
-// ------------------ Document APIs ------------------
+// ------------------ Documents ------------------
 
-// Upload documents for an application
-export const uploadDocuments = async (applicationId, files) => {
-  const formData = new FormData();
-  files.forEach((file) => formData.append("files", file));
-
-  const res = await axios.post(`${API_BASE}/documents/upload/${applicationId}`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
+// View Document
+export const viewDocument = async (docId) => {
+  const res = await api.get(`/documents/view/${docId}`, {
+    responseType: "blob", // important
   });
-  return res.data;
+
+  const file = new Blob([res.data], { type: res.headers["content-type"] });
+  const fileURL = URL.createObjectURL(file);
+  window.open(fileURL, "_blank");
 };
 
+// Download Document
+export const downloadDocument = async (docId) => {
+  const res = await api.get(`/documents/download/${docId}`, {
+    responseType: "blob",
+  });
 
+  const file = new Blob([res.data], { type: res.headers["content-type"] });
+  const fileURL = URL.createObjectURL(file);
 
-// View a document in browser
-export const viewDocument = (docId) => {
-  window.open(`${API_BASE}/documents/view/${docId}`, "_blank");
+  const link = document.createElement("a");
+  link.href = fileURL;
+  link.setAttribute("download", `document-${docId}.pdf`); // change extension if needed
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 };
-
-// Download a document
-export const downloadDocument = (docId) => {
-  window.open(`${API_BASE}/documents/download/${docId}`, "_blank");
-};
-
-
 
 // ------------------ MOCK ONLY FOR REPORT ------------------
 export const getApplicationsReport = async (startDate, endDate) => {

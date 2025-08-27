@@ -30,6 +30,23 @@ public class UsersController {
         return userser.login(user);
     }
 
+    // Add reviewer (Admin only)
+@PostMapping("/addReviewer")
+public ResponseEntity<?> addReviewer(@RequestBody Users user) {
+    // Check if email already exists
+    if (userser.emailExists(user.getEmail())) {
+        return ResponseEntity.badRequest().body("Email already registered");
+    }
+
+    // Force role to REVIEWER
+    user.setRole(Role.REVIEWER);
+
+    // Save user
+    Users savedReviewer = userser.saveUser(user);
+
+    return ResponseEntity.ok(savedReviewer);
+}
+
     
     @PostMapping("/register")
     public ResponseEntity<?> registerApplicant(@RequestBody Users user) {
@@ -80,6 +97,7 @@ public class UsersController {
     public Users updateUserProfile(@PathVariable Long id, @RequestBody Users updatedUser) {
     return userser.updateUserProfile(id, updatedUser);
 }
+
 
 
 

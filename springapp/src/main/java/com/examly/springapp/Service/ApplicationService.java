@@ -27,6 +27,8 @@ public class ApplicationService {
 
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+private EmailService emailService;
 
     public Application submitApplication(Long userId, Application application) {
         Users user = us.getUserById(userId);
@@ -114,28 +116,38 @@ public class ApplicationService {
 
     }
 
-    public Application updateApplicationStatus(Long appId, ApplicationStatus status, String rejectionReason) {
-        Application app = apprep.findById(appId)
-                .orElseThrow(() -> new RuntimeException("Application not found"));
+   public Application updateApplicationStatus(Long appId, ApplicationStatus status, String rejectionReason) {
+    Application app = apprep.findById(appId)
+            .orElseThrow(() -> new RuntimeException("Application not found"));
 
-        app.setStatus(status);
+    app.setStatus(status);
+    Application updatedApp = apprep.save(app);
 
-        Application updatedApp = apprep.save(app);
-
-        // Notify the applicant
-        String message;
-        if (status == ApplicationStatus.REJECTED) {
-            message = "Your application has been REJECTED. Reason: " + rejectionReason;
-        } else if (status == ApplicationStatus.APPROVED) {
-            message = "Your application has been APPROVED.";
-        } else {
-            message = "Your application status has been updated to: " + status;
-        }
-
-        notificationService.sendNotification(app.getApplicant(), message);
-
-        return updatedApp;
+    // Prepare message
+    String message;
+    if (status == ApplicationStatus.REJECTED) {
+        message = "Your application has been REJECTED. Reason: " + rejectionReason;
+    } else if (status == ApplicationStatus.APPROVED) {
+        message = "Your application has been APPROVED.";
+    } else {
+        message = "Your application status has been updated to: " + status;
     }
+
+    // In-app notification
+    notificationService.sendNotification(app.getApplicant(), message);
+
+    // Email notification
+    try {
+        String emailSubject = "Application Status Update";
+        String emailBody = "Hello " + app.getFullName() + ",\n\n" + message +
+                "\n\nRegards,\nHealth Coach Team";
+        emailService.sendEmail(app.getApplicant().getEmail(), emailSubject, emailBody);
+    } catch (Exception e) {
+        System.err.println("Failed to send email: " + e.getMessage());
+    }
+
+    return updatedApp;
+}
 
     public List<Application> filterByStatus(String status) {
         return apprep.findByStatus(ApplicationStatus.valueOf(status.toUpperCase()));
@@ -161,17 +173,19 @@ public class ApplicationService {
   }
 
 
-   public Application updateApplication(Long id, Application updatedApp) {
-        return apprep.findById(id).map(app -> {
-            app.setFullName(updatedApp.getFullName());
-            app.setPhoneNumber(updatedApp.getPhoneNumber());
-            app.setAddress(updatedApp.getAddress());
-            app.setExperienceYears(updatedApp.getExperienceYears());
-            app.setProgram(updatedApp.getProgram()); // include program
-            return apprep.save(app);
-        }).orElse(null);
-    }
-
+  public Application updateApplication(Long id, Application updatedApp) {
+    return apprep.findById(id).map(app -> {
+        app.setFullName(updatedApp.getFullName());
+        app.setPhoneNumber(updatedApp.getPhoneNumber());
+        app.setAddress(updatedApp.getAddress());
+        app.setExperienceYears(updatedApp.getExperienceYears());
+        // Only update program if editable
+        if (updatedApp.getProgram() != null) {
+            app.setProgram(updatedApp.getProgram());
+        }
+        return apprep.save(app);
+    }).orElseThrow(() -> new RuntimeException("Application not found"));
+}
 }
 
 

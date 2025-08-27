@@ -3,6 +3,11 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import {
+ submitApplication,
+ uploadDocuments
+} from "../api/api";
+
 
 // ---- GREEN-BASED THEME ----
 const colors = {
@@ -75,42 +80,27 @@ const ApplicationForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
-      // 1. SUBMIT APPLICATION DATA
-      const appRes = await axios.post(
-        `http://localhost:8080/application/submit/${userId}`,
-        {
-          fullName: formData.fullName,
-          phoneNumber: formData.phoneNumber,
-          address: formData.address,
-          experienceYears: formData.experienceYears,
-          program: formData.program   // ✅ send program
-        },
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+      // 1️⃣ Submit Application
+      const appRes = await submitApplication(userId, formData);
+      const applicationId = appRes.id;
 
-      const applicationId = appRes.data.id;
-
-      // 2. UPLOAD DOCUMENT (if any)
+      // 2️⃣ Upload Document (if provided)
       if (file) {
-        const formDataToSend = new FormData();
-        formDataToSend.append('files', file);
-
-        await axios.post(
-          `http://localhost:8080/documents/upload/${applicationId}`,
-          formDataToSend,
-          { headers: { 'Content-Type': 'multipart/form-data' } }
-        );
+        await uploadDocuments(applicationId, [file]); // pass as array
       }
 
-      setSuccess('Application submitted successfully!');
-      setTimeout(() => navigate('/applicant-dashboard'), 1200);
+      setSuccess("Application submitted successfully!");
+      setTimeout(() => navigate("/applicant/applicant-dashboard"), 1200);
 
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to submit application. Please try again.');
+      setError(
+        err.response?.data?.message ||
+          "Failed to submit application. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
