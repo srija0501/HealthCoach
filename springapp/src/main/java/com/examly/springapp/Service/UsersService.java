@@ -11,10 +11,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 
 import com.examly.springapp.Entity.Users;
 import com.examly.springapp.Entity.Users.Role;
 import com.examly.springapp.Repository.UsersRepository;
+import com.examly.springapp.Repository.ApplicationRepository;
 import com.examly.springapp.Security.JwtUtil;
 
 @Service
@@ -22,6 +26,12 @@ public class UsersService {
 
     @Autowired
     private UsersRepository userrep;
+    
+    @Autowired
+    private ApplicationRepository applicationRepository;
+    
+    @Autowired
+    private EntityManager entityManager;
 
     // Password encoder bean
     @Autowired
@@ -101,12 +111,32 @@ public ResponseEntity<?> login(Users user) {
         return userrep.save(existingUser);
     }
 
+    @Transactional
     public void deleteUserById(Long userId) {
-        Optional<Users> userOpt = userrep.findById(userId);
-        if (userOpt.isPresent()) {
-            userrep.delete(userOpt.get()); // cascades to applications → documents
-        } else {
+        if (!userrep.existsById(userId)) {
             throw new RuntimeException("User not found with id: " + userId);
         }
+        
+        // Delete in correct order using native SQL
+        // 1. Delete documents first
+        Query deleteDocsQuery = entityManager.createNativeQuery(
+            "DELETE FROM application_document WHERE application_id IN (SELECT id FROM applications WHERE applicant_id = ?)");
+        deleteDocsQuery.setParameter(1, userId);
+        deleteDocsQuery.executeUpdate();
+        
+        // 2. Delete applications
+        Query deleteAppsQuery = entityManager.createNativeQuery("DELETE FROM applications WHERE applicant_id = ?");
+        deleteAppsQuery.setParameter(1, userId);
+        deleteAppsQuery.executeUpdate();
+        
+        // 3. Delete notifications
+        Query deleteNotificationsQuery = entityManager.createNativeQuery("DELETE FROM notification WHERE user_id = ?");
+        deleteNotificationsQuery.setParameter(1, userId);
+        deleteNotificationsQuery.executeUpdate();
+        
+        // 4. Delete user
+        Query deleteUserQuery = entityManager.createNativeQuery("DELETE FROM users WHERE id = ?");
+        deleteUserQuery.setParameter(1, userId);
+        deleteUserQuery.executeUpdate();
     }
 }

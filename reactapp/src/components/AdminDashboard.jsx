@@ -7,6 +7,7 @@ import {
   getApplicationsReport,
   updateApplicationStatus,
   addUser,
+  deleteUser,
 } from "../api/api";
 
 import {
@@ -60,7 +61,10 @@ export default function AdminDashboard() {
         setUsers(res.content || []);
         setTotalPages(res.totalPages || 0);
       })
-      .catch(console.error);
+      .catch((err) => {
+        console.error(err);
+        alert(" Failed to load users: " + (err.response?.data?.message || "Unknown error"));
+      });
   };
 
   const loadApplicationsByStatus = (status) => {
@@ -106,6 +110,19 @@ const handleAddReviewer = async (e) => {
       "❌ Failed to add reviewer: " +
         (err.response?.data?.message || "Unknown error")
     );
+  }
+};
+
+const handleDeleteUser = async (userId, userName) => {
+  if (window.confirm(`Delete user ${userName}?`)) {
+    try {
+      await deleteUser(userId);
+      alert("✅ User deleted successfully");
+      loadUsers(currentPage);
+    } catch (err) {
+      const errorMsg = err.response?.data || err.response?.data?.message || "Unknown error";
+      alert("❌ Failed to delete user: " + errorMsg);
+    }
   }
 };
 
@@ -255,10 +272,11 @@ const handleAddReviewer = async (e) => {
                             </span>
                           </td>
                           <td className="text-end pe-4">
-                            <button className="btn btn-sm btn-outline-secondary me-2">
-                              <i className="bi bi-pencil"></i>
-                            </button>
-                            <button className="btn btn-sm btn-outline-danger">
+                            <button 
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => handleDeleteUser(u.id, u.username || u.name)}
+                              title="Delete user"
+                            >
                               <i className="bi bi-trash"></i>
                             </button>
                           </td>
@@ -364,7 +382,7 @@ const handleAddReviewer = async (e) => {
                   <th>Program</th>
                   <th>Submitted</th>
                   <th>Status</th>
-                  {/* Removed Actions column */}
+                 
                 </tr>
               </thead>
               <tbody>

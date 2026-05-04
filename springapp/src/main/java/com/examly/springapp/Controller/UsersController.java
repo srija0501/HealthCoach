@@ -98,9 +98,15 @@ public ResponseEntity<?> addReviewer(@RequestBody Users user) {
     return userser.updateUserProfile(id, updatedUser);
 }
 
-
-
-
-
-    
+    // Delete User (Admin only)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        try {
+            userser.deleteUserById(id);
+            return ResponseEntity.ok("User deleted successfully");
+        } catch (RuntimeException e) {
+            System.err.println("Delete user error: " + e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
